@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'device_detail_screen.dart';
 
 class LockScreen extends StatefulWidget {
   const LockScreen({super.key});
@@ -53,7 +54,7 @@ class _LockScreenState extends State<LockScreen> {
           children: [
             const SizedBox(height: 100),
 
-            // ✅ الجزء الجديد: ملخص الأقفال
+            // ✅ ملخص الأقفال
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Container(
@@ -91,78 +92,95 @@ class _LockScreenState extends State<LockScreen> {
                   final device = devices[index];
                   final isLocked = device["locked"] as bool;
 
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 500),
-                    margin: const EdgeInsets.symmetric(vertical: 12),
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors:
-                            isLocked
-                                ? [
-                                  const Color(0xFF283E51),
-                                  const Color(0xFF485563),
-                                ]
-                                : [
-                                  const Color(0xFF1D976C),
-                                  const Color(0xFF93F9B9),
-                                ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.3),
-                          blurRadius: 10,
-                          offset: const Offset(0, 6),
+                  return GestureDetector(
+                    onTap: () async {
+                      // افتح شاشة التفاصيل واستقبل الحالة الجديدة
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => DeviceDetailScreen(device: device),
                         ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // device name + state
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              device["name"],
-                              style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
+                      );
+
+                      if (result != null) {
+                        setState(() {
+                          devices[index]["locked"] = result;
+                        });
+                      }
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 500),
+                      margin: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors:
+                              isLocked
+                                  ? [
+                                    const Color(0xFF283E51),
+                                    const Color(0xFF485563),
+                                  ]
+                                  : [
+                                    const Color(0xFF1D976C),
+                                    const Color(0xFF93F9B9),
+                                  ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // device name + state
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                device["name"],
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              Text(
+                                isLocked ? "Locked 🔒" : "Unlocked 🔓",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            ],
+                          ),
+                          // lock button
+                          GestureDetector(
+                            onTap: () => toggleLock(index),
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 500),
+                              transitionBuilder:
+                                  (child, anim) => RotationTransition(
+                                    turns: anim,
+                                    child: child,
+                                  ),
+                              child: Icon(
+                                isLocked ? Icons.lock : Icons.lock_open,
+                                key: ValueKey<bool>(isLocked),
+                                size: 50,
                                 color: Colors.white,
                               ),
                             ),
-                            const SizedBox(height: 5),
-                            Text(
-                              isLocked ? "Locked 🔒" : "Unlocked 🔓",
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.white70,
-                              ),
-                            ),
-                          ],
-                        ),
-                        // lock button
-                        GestureDetector(
-                          onTap: () => toggleLock(index),
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 500),
-                            transitionBuilder:
-                                (child, anim) => RotationTransition(
-                                  turns: anim,
-                                  child: child,
-                                ),
-                            child: Icon(
-                              isLocked ? Icons.lock : Icons.lock_open,
-                              key: ValueKey<bool>(isLocked),
-                              size: 50,
-                              color: Colors.white,
-                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   );
                 },

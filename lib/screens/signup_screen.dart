@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'login_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -8,17 +9,47 @@ class SignupScreen extends StatefulWidget {
   State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
+class _SignupScreenState extends State<SignupScreen>
+    with SingleTickerProviderStateMixin {
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _addressController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
 
   bool _isPasswordVisible = false;
   bool _isConfirmVisible = false;
 
+  late AnimationController _animController;
+  late Animation<Offset> _formAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _formAnimation = Tween<Offset>(
+      begin: const Offset(0, 1),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _animController, curve: Curves.easeOutBack),
+    );
+    _animController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
   void _signup() {
     if (_passwordController.text == _confirmController.text &&
-        _emailController.text.isNotEmpty) {
+        _emailController.text.isNotEmpty &&
+        _phoneController.text.isNotEmpty &&
+        _addressController.text.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("✅ Account created successfully!")),
       );
@@ -39,9 +70,12 @@ class _SignupScreenState extends State<SignupScreen> {
     required TextEditingController controller,
     bool isPassword = false,
     bool isConfirm = false,
+    bool isPhone = false,
   }) {
     return TextField(
       controller: controller,
+      keyboardType: isPhone ? TextInputType.phone : TextInputType.text,
+      inputFormatters: isPhone ? [FilteringTextInputFormatter.digitsOnly] : [],
       obscureText:
           (isPassword && !_isPasswordVisible) ||
           (isConfirm && !_isConfirmVisible),
@@ -85,6 +119,9 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    double width =
+        MediaQuery.of(context).size.width * 0.9; // ✅ Responsive width
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -96,49 +133,44 @@ class _SignupScreenState extends State<SignupScreen> {
         ),
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Animated icon
-                TweenAnimationBuilder(
-                  tween: Tween<double>(begin: 0, end: 1),
-                  duration: const Duration(milliseconds: 800),
-                  builder: (context, value, child) {
-                    return Opacity(
-                      opacity: value,
-                      child: Transform.scale(
-                        scale: value,
-                        child: const Icon(
-                          Icons.person_add_alt_1,
-                          size: 100,
-                          color: Colors.white,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  "Create Account",
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
+            padding: const EdgeInsets.all(16),
+            child: SlideTransition(
+              position: _formAnimation,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.person_add_alt_1,
+                    size: 70,
                     color: Colors.white,
                   ),
-                ),
-                const SizedBox(height: 40),
-
-                // Form Card
-                Card(
-                  color: Colors.white.withOpacity(0.1),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                  const SizedBox(height: 15),
+                  const Text(
+                    "Create Account",
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                  elevation: 12,
-                  child: Padding(
+                  const SizedBox(height: 30),
+
+                  // ✅ Responsive Form Card
+                  Container(
+                    width: width,
                     padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
                     child: Column(
                       children: [
                         _buildTextField(
@@ -146,30 +178,45 @@ class _SignupScreenState extends State<SignupScreen> {
                           icon: Icons.email,
                           controller: _emailController,
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 15),
+                        _buildTextField(
+                          hint: "Phone Number",
+                          icon: Icons.phone,
+                          controller: _phoneController,
+                          isPhone: true,
+                        ),
+                        const SizedBox(height: 15),
+                        _buildTextField(
+                          hint: "Address",
+                          icon: Icons.home,
+                          controller: _addressController,
+                        ),
+                        const SizedBox(height: 15),
                         _buildTextField(
                           hint: "Password",
                           icon: Icons.lock,
                           controller: _passwordController,
                           isPassword: true,
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 15),
                         _buildTextField(
                           hint: "Confirm Password",
                           icon: Icons.lock_outline,
                           controller: _confirmController,
                           isConfirm: true,
                         ),
-                        const SizedBox(height: 30),
+                        const SizedBox(height: 25),
 
-                        // Sign Up Button
-                        SizedBox(
-                          width: double.infinity,
+                        // ✅ Animated Sign Up Button
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          width: width * 0.8,
                           height: 50,
                           child: ElevatedButton(
                             onPressed: _signup,
                             style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.zero,
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15),
                               ),
@@ -198,36 +245,37 @@ class _SignupScreenState extends State<SignupScreen> {
                       ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      "Already have an account? ",
-                      style: TextStyle(color: Colors.white70),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const LoginScreen(),
+                  const SizedBox(height: 20),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "Already have an account? ",
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LoginScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          "Login",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
                           ),
-                        );
-                      },
-                      child: const Text(
-                        "Login",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          decoration: TextDecoration.underline,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

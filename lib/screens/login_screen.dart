@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lockify/screens/forget_password_screen.dart';
 import 'package:lockify/screens/look_screen.dart' show LockScreen;
 import 'signup_screen.dart';
 
@@ -199,7 +200,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 // Forgot password
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ForgetPasswordScreen(),
+                      ),
+                    );
+                  },
                   child: const Text(
                     "Forgot Password?",
                     style: TextStyle(color: Colors.white70),
