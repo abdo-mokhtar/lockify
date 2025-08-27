@@ -11,6 +11,7 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen>
     with SingleTickerProviderStateMixin {
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
@@ -46,7 +47,8 @@ class _SignupScreenState extends State<SignupScreen>
   }
 
   void _signup() {
-    if (_passwordController.text == _confirmController.text &&
+    if (_usernameController.text.isNotEmpty &&
+        _passwordController.text == _confirmController.text &&
         _emailController.text.isNotEmpty &&
         _phoneController.text.isNotEmpty &&
         _addressController.text.isNotEmpty) {
@@ -119,8 +121,7 @@ class _SignupScreenState extends State<SignupScreen>
 
   @override
   Widget build(BuildContext context) {
-    double width =
-        MediaQuery.of(context).size.width * 0.9; // ✅ Responsive width
+    double width = MediaQuery.of(context).size.width * 0.9;
 
     return Scaffold(
       body: Container(
@@ -154,8 +155,6 @@ class _SignupScreenState extends State<SignupScreen>
                     ),
                   ),
                   const SizedBox(height: 30),
-
-                  // ✅ Responsive Form Card
                   Container(
                     width: width,
                     padding: const EdgeInsets.all(20),
@@ -173,6 +172,12 @@ class _SignupScreenState extends State<SignupScreen>
                     ),
                     child: Column(
                       children: [
+                        _buildTextField(
+                          hint: "Username",
+                          icon: Icons.person,
+                          controller: _usernameController,
+                        ),
+                        const SizedBox(height: 15),
                         _buildTextField(
                           hint: "Email",
                           icon: Icons.email,
@@ -206,8 +211,6 @@ class _SignupScreenState extends State<SignupScreen>
                           isConfirm: true,
                         ),
                         const SizedBox(height: 25),
-
-                        // ✅ Animated Sign Up Button
                         AnimatedContainer(
                           duration: const Duration(milliseconds: 300),
                           width: width * 0.8,
@@ -246,7 +249,6 @@ class _SignupScreenState extends State<SignupScreen>
                     ),
                   ),
                   const SizedBox(height: 20),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

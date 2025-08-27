@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:lockify/screens/user_profile_screen%20.dart'
+    show UserProfileScreen;
 import 'device_detail_screen.dart';
 
 class LockScreen extends StatefulWidget {
@@ -41,6 +43,25 @@ class _LockScreenState extends State<LockScreen> {
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person, color: Colors.white, size: 28),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (_) => const UserProfileScreen(
+                        username: "Abdo",
+                        email: "abdo@email.com",
+                        phone: "01012345678",
+                        address: "Cairo, Egypt",
+                      ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Container(
         decoration: const BoxDecoration(
