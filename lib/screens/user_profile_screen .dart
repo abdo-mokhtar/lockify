@@ -42,9 +42,29 @@ class UserProfileScreen extends StatelessWidget {
             // صورة بروفايل
             CircleAvatar(
               radius: 60,
-              backgroundColor: Colors.white24,
-              child: const Icon(Icons.person, size: 70, color: Colors.white),
+              backgroundColor: Colors.transparent,
+              child: Container(
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [Colors.blueAccent, Colors.purpleAccent],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    username.isNotEmpty ? username[0].toUpperCase() : "?",
+                    style: const TextStyle(
+                      fontSize: 42,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
             ),
+
             const SizedBox(height: 20),
 
             Text(
