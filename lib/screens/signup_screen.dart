@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../api_constants.dart' show ApiConstants;
+import '../utils/api_constants.dart' show ApiConstants;
 import 'login_screen.dart';
 import 'otp_screen.dart';
 

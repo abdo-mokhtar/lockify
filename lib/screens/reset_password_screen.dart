@@ -1,118 +1,70 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../services/auth_service.dart';
 
-import 'dart:convert';
-import '../utils/api_constants.dart' show ApiConstants;
-import 'login_screen.dart';
-import 'reset_password_screen.dart';
-
-class OtpScreen extends StatefulWidget {
-  final int userId;
-  final bool isResetPassword;
-
-  const OtpScreen({
-    super.key,
-    required this.userId,
-    required this.isResetPassword,
-  });
+class ResetPasswordScreen extends StatefulWidget {
+  final String resetToken;
+  const ResetPasswordScreen({super.key, required this.resetToken});
 
   @override
-  State<OtpScreen> createState() => _OtpScreenState();
+  State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
 }
 
-class _OtpScreenState extends State<OtpScreen> {
-  final _otpController = TextEditingController();
-  bool _isLoading = false;
+class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
+  final TextEditingController _passwordController = TextEditingController();
+  bool _loading = false;
+  bool _isPasswordVisible = false;
+  final AuthService _authService = AuthService();
 
-  @override
-  void dispose() {
-    _otpController.dispose();
-    super.dispose();
-  }
-
-  void _showSnack(String msg, Color color) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg, style: const TextStyle(color: Colors.white)),
-        backgroundColor: color,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+  void _showCustomSnackBar(String message, bool isSuccess) {
+    final snackBar = SnackBar(
+      behavior: SnackBarBehavior.floating,
+      margin: const EdgeInsets.all(16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      backgroundColor: isSuccess ? Colors.green.shade600 : Colors.red.shade600,
+      content: Row(
+        children: [
+          Icon(
+            isSuccess ? Icons.check_circle : Icons.error,
+            color: Colors.white,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ),
+        ],
       ),
+      duration: const Duration(seconds: 3),
     );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  Future<void> _verifyOtp() async {
-    final otp = _otpController.text.trim();
-
-    if (otp.isEmpty) {
-      _showSnack("Enter OTP", Colors.red);
+  void _resetPassword() async {
+    if (_passwordController.text.trim().isEmpty) {
+      _showCustomSnackBar("Please enter a new password", false);
+      return;
+    }
+    if (_passwordController.text.trim().length < 8) {
+      _showCustomSnackBar("Password must be at least 8 characters", false);
       return;
     }
 
-    if (otp.length != 6) {
-      _showSnack("OTP must be exactly 6 digits", Colors.red);
-      return;
-    }
+    setState(() => _loading = true);
 
-    setState(() => _isLoading = true);
+    final result = await _authService.resetPassword(
+      _passwordController.text.trim(),
+      widget.resetToken,
+    );
 
-    try {
-      final endpoint =
-          widget.isResetPassword
-              ? ApiConstants.verifyResetOtp
-              : ApiConstants.verifyOtp;
+    setState(() => _loading = false);
 
-      final response = await http.post(
-        Uri.parse(endpoint),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({"user_id": widget.userId, "otp": otp}),
-      );
+    _showCustomSnackBar(result['message'], result['success']);
 
-      final responseData = jsonDecode(response.body);
-
-      if (response.statusCode == 200) {
-        _showSnack("✅ OTP Verified", Colors.green);
-
-        if (widget.isResetPassword) {
-          final dynamic resetToken = responseData['reset_token'];
-          if (resetToken is String) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ResetPasswordScreen(resetToken: ''),
-              ),
-            );
-          } else {
-            _showSnack("❌ Error: Missing reset token", Colors.red);
-          }
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const LoginScreen()),
-          );
-        }
-      } else {
-        String errorMessage = '❌ Invalid OTP';
-        final dynamic detail = responseData['detail'];
-
-        if (detail is String) {
-          errorMessage = detail;
-        } else if (detail is List && detail.isNotEmpty) {
-          errorMessage = detail[0]['msg'] ?? errorMessage;
-        } else if (responseData['message'] != null) {
-          errorMessage = responseData['message'];
-        }
-
-        _showSnack(errorMessage, Colors.red);
-      }
-    } catch (e) {
-      _showSnack("Error: $e", Colors.red);
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+    if (result['success']) {
+      Navigator.popUntil(context, (route) => route.isFirst);
     }
   }
 
@@ -136,10 +88,10 @@ class _OtpScreenState extends State<OtpScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.verified_user, size: 100, color: Colors.white),
+                const Icon(Icons.lock_reset, size: 100, color: Colors.white),
                 const SizedBox(height: 20),
                 const Text(
-                  "Verify OTP",
+                  "Reset Password",
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -148,6 +100,8 @@ class _OtpScreenState extends State<OtpScreen> {
                   ),
                 ),
                 const SizedBox(height: 40),
+
+                // Card
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.1),
@@ -166,23 +120,34 @@ class _OtpScreenState extends State<OtpScreen> {
                     child: Column(
                       children: [
                         TextField(
-                          controller: _otpController,
-                          keyboardType: TextInputType.number,
-                          maxLength: 6,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            letterSpacing: 4,
-                          ),
-                          textAlign: TextAlign.center,
+                          controller: _passwordController,
+                          obscureText: !_isPasswordVisible,
+                          style: const TextStyle(color: Colors.white),
+                          cursorColor: Colors.blueAccent,
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: Colors.white.withOpacity(0.15),
-                            hintText: "Enter 6-digit OTP",
+                            hintText: "Enter new password",
                             hintStyle: TextStyle(
                               color: Colors.white.withOpacity(0.6),
                             ),
-                            counterText: "",
+                            prefixIcon: const Icon(
+                              Icons.lock,
+                              color: Colors.white,
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: Colors.white,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordVisible = !_isPasswordVisible;
+                                });
+                              },
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(15),
                               borderSide: BorderSide.none,
@@ -197,11 +162,13 @@ class _OtpScreenState extends State<OtpScreen> {
                           ),
                         ),
                         const SizedBox(height: 30),
+
+                        // Reset Button
                         SizedBox(
                           width: double.infinity,
                           height: 50,
                           child: ElevatedButton(
-                            onPressed: _isLoading ? null : _verifyOtp,
+                            onPressed: _loading ? null : _resetPassword,
                             style: ElevatedButton.styleFrom(
                               padding: EdgeInsets.zero,
                               shape: RoundedRectangleBorder(
@@ -218,7 +185,7 @@ class _OtpScreenState extends State<OtpScreen> {
                               child: Container(
                                 alignment: Alignment.center,
                                 child:
-                                    _isLoading
+                                    _loading
                                         ? const SizedBox(
                                           width: 24,
                                           height: 24,
@@ -228,7 +195,7 @@ class _OtpScreenState extends State<OtpScreen> {
                                           ),
                                         )
                                         : const Text(
-                                          "Verify",
+                                          "Reset",
                                           style: TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
@@ -240,6 +207,20 @@ class _OtpScreenState extends State<OtpScreen> {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // رجوع
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    "Back",
+                    style: TextStyle(
+                      color: Colors.white70,
+                      decoration: TextDecoration.underline,
                     ),
                   ),
                 ),

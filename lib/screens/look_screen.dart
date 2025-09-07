@@ -49,15 +49,7 @@ class _LockScreenState extends State<LockScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder:
-                      (_) => const UserProfileScreen(
-                        username: "Abdo",
-                        email: "abdo@email.com",
-                        phone: "01012345678",
-                        address: "Cairo, Egypt",
-                      ),
-                ),
+                MaterialPageRoute(builder: (_) => UserProfileScreen()),
               );
             },
           ),

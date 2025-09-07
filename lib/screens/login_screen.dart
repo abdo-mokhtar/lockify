@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'forget_password_screen.dart';
 import 'look_screen.dart' show LockScreen;
 import 'signup_screen.dart';
-import '../api_constants.dart' show ApiConstants;
+import '../utils/api_constants.dart' show ApiConstants;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -52,6 +53,11 @@ class _LoginScreenState extends State<LoginScreen> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
+  Future<void> _saveToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('auth_token', token);
+  }
+
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -59,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse(ApiConstants.signin), // تم تعديل هذا السطر
+        Uri.parse(ApiConstants.signin),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'identifier': _emailController.text.trim(),
@@ -68,6 +74,12 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final token = data['access_token'];
+
+        // حفظ التوكن في SharedPreferences
+        await _saveToken(token);
+
         _showCustomSnackBar(
           context,
           message: "Login successful ✅",
@@ -79,25 +91,23 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       } else if (response.statusCode == 401) {
         final responseData = jsonDecode(response.body);
-        final dynamic detail = responseData['detail'];
-        String errorMessage = 'Account not verified. OTP sent to your email.';
+        String errorMessage = "Invalid credentials";
 
-        if (detail is String) {
-          errorMessage = detail;
+        // معالجة صحيحة للرسائل من السيرفر
+        if (responseData['detail'] != null) {
+          errorMessage = responseData['detail'].toString();
         } else if (responseData['message'] != null) {
-          errorMessage = responseData['message'];
+          errorMessage = responseData['message'].toString();
         }
 
-        _showCustomSnackBar(
-          context,
-          message: "Account not verified. OTP sent to your email.",
-          isSuccess: false,
-        );
+        _showCustomSnackBar(context, message: errorMessage, isSuccess: false);
       } else {
         final responseData = jsonDecode(response.body);
         String errorMessage = 'Login failed';
         if (responseData.containsKey('message')) {
           errorMessage = responseData['message'];
+        } else if (responseData.containsKey('detail')) {
+          errorMessage = responseData['detail'].toString();
         }
         _showCustomSnackBar(context, message: errorMessage, isSuccess: false);
       }
