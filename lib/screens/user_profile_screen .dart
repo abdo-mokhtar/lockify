@@ -52,22 +52,35 @@ class _UserProfileScreenState extends State<UserProfileScreen>
 
     showDialog(
       context: context,
-      builder:
-          (dialogContext) => AlertDialog(
-            backgroundColor: const Color(0xFF1E2A3C),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: const BorderSide(color: Colors.white12),
+      builder: (dialogContext) {
+        final screenWidth = MediaQuery.of(dialogContext).size.width;
+        final screenHeight = MediaQuery.of(dialogContext).size.height;
+        final isSmallScreen = screenHeight < 700;
+        final isTablet = screenWidth > 600;
+
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1E2A3C),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Colors.white12),
+          ),
+          title: const Text(
+            "Edit Profile",
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+              fontSize: 20,
             ),
-            title: const Text(
-              "Edit Profile",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 20,
+          ),
+          content: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: isTablet ? screenWidth * 0.5 : screenWidth * 0.85,
+              maxHeight: screenHeight * 0.6,
+            ),
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(dialogContext).viewInsets.bottom,
               ),
-            ),
-            content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -76,26 +89,26 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                     'Email',
                     Icons.email,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: isSmallScreen ? 12 : 16),
                   _buildReadOnlyField(
                     user['phone'] ?? '',
                     'Phone',
                     Icons.phone,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: isSmallScreen ? 12 : 16),
                   _buildDialogTextField(
                     addressController,
                     'Address',
                     Icons.location_on,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: isSmallScreen ? 12 : 16),
                   _buildDialogTextField(
                     currentPasswordController,
                     'Current Password',
                     Icons.lock,
                     obscureText: true,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: isSmallScreen ? 12 : 16),
                   _buildDialogTextField(
                     newPasswordController,
                     'New Password',
@@ -105,110 +118,102 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                 ],
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text(
-                  "Cancel",
-                  style: TextStyle(color: Colors.white70, fontSize: 16),
-                ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text(
+                "Cancel",
+                style: TextStyle(color: Colors.white70, fontSize: 16),
               ),
-              TextButton(
-                onPressed: () async {
-                  // إضافة validation للـ password
-                  if (newPasswordController.text.isNotEmpty &&
-                      currentPasswordController.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          "Current password is required to change password",
-                        ),
-                        backgroundColor: Colors.redAccent,
+            ),
+            TextButton(
+              onPressed: () async {
+                if (newPasswordController.text.isNotEmpty &&
+                    currentPasswordController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        "Current password is required to change password",
                       ),
-                    );
-                    return;
-                  }
+                      backgroundColor: Colors.redAccent,
+                    ),
+                  );
+                  return;
+                }
 
-                  // إظهار loading indicator
-                  showDialog(
-                    context: dialogContext,
-                    barrierDismissible: false,
-                    builder:
-                        (_) => const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.greenAccent,
-                          ),
+                showDialog(
+                  context: dialogContext,
+                  barrierDismissible: false,
+                  builder:
+                      (_) => const Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.greenAccent,
                         ),
+                      ),
+                );
+
+                try {
+                  final result = await UserService.updateProfile(
+                    email: user['email'],
+                    phone: user['phone'],
+                    address: addressController.text,
+                    currentPassword:
+                        currentPasswordController.text.isEmpty
+                            ? null
+                            : currentPasswordController.text,
+                    newPassword:
+                        newPasswordController.text.isEmpty
+                            ? null
+                            : newPasswordController.text,
                   );
 
-                  try {
-                    final result = await UserService.updateProfile(
-                      email: user['email'],
-                      phone: user['phone'],
-                      address: addressController.text,
-                      currentPassword:
-                          currentPasswordController.text.isEmpty
-                              ? null
-                              : currentPasswordController.text,
-                      newPassword:
-                          newPasswordController.text.isEmpty
-                              ? null
-                              : newPasswordController.text,
-                    );
+                  Navigator.pop(dialogContext); // إخفاء loading
+                  Navigator.pop(dialogContext); // إغلاق edit dialog
 
-                    // إخفاء loading indicator
-                    Navigator.pop(dialogContext);
-                    // إغلاق edit dialog
-                    Navigator.pop(dialogContext);
-
-                    if (result != null) {
-                      // تحديث الـ UI
-                      _loadUserProfile();
-
-                      // إظهار رسالة نجاح
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Profile updated successfully!"),
-                            backgroundColor: Colors.green,
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                      }
-                    } else {
-                      // إظهار رسالة خطأ
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Failed to update profile"),
-                            backgroundColor: Colors.redAccent,
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                      }
-                    }
-                  } catch (e) {
-                    // إخفاء loading indicator في حالة الخطأ
-                    Navigator.pop(dialogContext);
-
+                  if (result != null) {
+                    _loadUserProfile();
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Error: $e"),
+                        const SnackBar(
+                          content: Text("Profile updated successfully!"),
+                          backgroundColor: Colors.green,
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  } else {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Failed to update profile"),
                           backgroundColor: Colors.redAccent,
-                          duration: const Duration(seconds: 3),
+                          duration: Duration(seconds: 2),
                         ),
                       );
                     }
                   }
-                },
-                child: const Text(
-                  "Save",
-                  style: TextStyle(color: Colors.greenAccent, fontSize: 16),
-                ),
+                } catch (e) {
+                  Navigator.pop(dialogContext); // إخفاء loading
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Error: $e"),
+                        backgroundColor: Colors.redAccent,
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text(
+                "Save",
+                style: TextStyle(color: Colors.greenAccent, fontSize: 16),
               ),
-            ],
-          ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -288,12 +293,18 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  value.isEmpty ? 'Not provided' : value,
-                  style: TextStyle(
-                    color: value.isEmpty ? Colors.white24 : Colors.white70,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                // تعديل حقل الإيميل ليكون على سطر واحد
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Text(
+                    value.isEmpty ? 'Not provided' : value,
+                    style: TextStyle(
+                      color: value.isEmpty ? Colors.white24 : Colors.white70,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1, // لضمان ظهور النص على سطر واحد
+                    overflow: TextOverflow.ellipsis, // قص النص لو طويل جدًا
                   ),
                 ),
               ],
