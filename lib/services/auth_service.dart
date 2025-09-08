@@ -7,12 +7,6 @@ import 'token_manager.dart';
 class AuthService {
   final Dio _dio = Dio();
 
-  /// حفظ التوكن في SharedPreferences
-  Future<void> _saveToken(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString("token", token);
-  }
-
   /// الحصول على التوكن من SharedPreferences
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();

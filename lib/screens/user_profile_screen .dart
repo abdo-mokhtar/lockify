@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/user_service.dart';
+import 'login_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({Key? key}) : super(key: key);
@@ -24,8 +25,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   void _showEditDialog(Map<String, dynamic> user) {
-    final emailController = TextEditingController(text: user['email'] ?? '');
-    final phoneController = TextEditingController(text: user['phone'] ?? '');
+    // فقط العنوان وكلمة المرور يمكن تغييرهم
     final addressController = TextEditingController(
       text: user['address'] ?? '',
     );
@@ -51,16 +51,31 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             content: SingleChildScrollView(
               child: Column(
                 children: [
-                  _buildDialogTextField(emailController, 'Email', Icons.email),
+                  // عرض الإيميل بدون إمكانية التعديل
+                  _buildReadOnlyField(
+                    user['email'] ?? '',
+                    'Email',
+                    Icons.email,
+                  ),
                   const SizedBox(height: 12),
-                  _buildDialogTextField(phoneController, 'Phone', Icons.phone),
+
+                  // عرض رقم التليفون بدون إمكانية التعديل
+                  _buildReadOnlyField(
+                    user['phone'] ?? '',
+                    'Phone',
+                    Icons.phone,
+                  ),
                   const SizedBox(height: 12),
+
+                  // العنوان قابل للتعديل
                   _buildDialogTextField(
                     addressController,
                     'Address',
                     Icons.location_on,
                   ),
                   const SizedBox(height: 12),
+
+                  // كلمة المرور الحالية
                   _buildDialogTextField(
                     currentPasswordController,
                     'Current Password',
@@ -68,6 +83,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     obscureText: true,
                   ),
                   const SizedBox(height: 12),
+
+                  // كلمة المرور الجديدة
                   _buildDialogTextField(
                     newPasswordController,
                     'New Password',
@@ -88,8 +105,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               TextButton(
                 onPressed: () async {
                   final result = await UserService.updateProfile(
-                    email: emailController.text,
-                    phone: phoneController.text,
+                    email: user['email'], // إرسال نفس الإيميل الموجود
+                    phone: user['phone'], // إرسال نفس رقم التليفون الموجود
                     address: addressController.text,
                     currentPassword: currentPasswordController.text,
                     newPassword: newPasswordController.text,
@@ -104,6 +121,50 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ),
             ],
           ),
+    );
+  }
+
+  // حقل للقراءة فقط (غير قابل للتعديل)
+  Widget _buildReadOnlyField(String value, String label, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(
+          0.05,
+        ), // لون أفتح للحقول غير القابلة للتعديل
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.white38, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.white38,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value.isEmpty ? 'Not provided' : value,
+                  style: TextStyle(
+                    color: value.isEmpty ? Colors.white24 : Colors.white54,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.lock, color: Colors.white24, size: 16),
+        ],
+      ),
     );
   }
 
@@ -178,7 +239,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     if (confirmed == true) {
       final success = await UserService.deleteAccount();
       if (success && mounted) {
-        // Show success message
         await showDialog(
           context: context,
           barrierDismissible: false,
@@ -189,8 +249,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   borderRadius: BorderRadius.circular(20),
                   side: const BorderSide(color: Colors.greenAccent),
                 ),
-                title: Row(
-                  children: const [
+                title: const Row(
+                  children: [
                     Icon(
                       Icons.check_circle,
                       color: Colors.greenAccent,
@@ -214,7 +274,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   TextButton(
                     onPressed: () {
                       Navigator.pop(context);
-                      Navigator.pushReplacementNamed(context, '/login');
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
+                        (route) => false,
+                      );
                     },
                     child: const Text(
                       "OK",
@@ -233,6 +299,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenHeight < 700;
+    final isTablet = screenWidth > 600;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -306,13 +377,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             final user = snapshot.data!;
             return Column(
               children: [
-                const SizedBox(height: 100),
-
-                // Profile Avatar and Basic Info
+                SizedBox(height: isSmallScreen ? 80 : 100),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: EdgeInsets.symmetric(horizontal: isTablet ? 32 : 16),
                   child: Container(
-                    padding: const EdgeInsets.all(20),
+                    padding: EdgeInsets.all(isSmallScreen ? 12 : 15),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -328,7 +397,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     child: Column(
                       children: [
                         CircleAvatar(
-                          radius: 50,
+                          radius: isSmallScreen ? 30 : (isTablet ? 40 : 35),
                           backgroundColor: Colors.greenAccent,
                           child: Text(
                             user['username']
@@ -336,34 +405,35 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                     .substring(0, 1)
                                     .toUpperCase() ??
                                 '?',
-                            style: const TextStyle(
-                              fontSize: 40,
+                            style: TextStyle(
+                              fontSize:
+                                  isSmallScreen ? 24 : (isTablet ? 32 : 28),
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 15),
+                        SizedBox(height: isSmallScreen ? 8 : 10),
                         Text(
                           user['username'] ?? '',
-                          style: const TextStyle(
-                            fontSize: 24,
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 18 : (isTablet ? 22 : 20),
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: isSmallScreen ? 4 : 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isSmallScreen ? 8 : 10,
+                            vertical: isSmallScreen ? 3 : 4,
                           ),
                           decoration: BoxDecoration(
                             color:
                                 user['is_verified'] == true
                                     ? Colors.greenAccent.withOpacity(0.2)
                                     : Colors.orange.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(15),
+                            borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color:
                                   user['is_verified'] == true
@@ -381,6 +451,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                       ? Colors.greenAccent
                                       : Colors.orange,
                               fontWeight: FontWeight.bold,
+                              fontSize:
+                                  isSmallScreen ? 10 : (isTablet ? 13 : 11),
                             ),
                           ),
                         ),
@@ -388,13 +460,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ),
                   ),
                 ),
-
-                const SizedBox(height: 20),
-
-                // User Details
+                SizedBox(height: isSmallScreen ? 12 : 15),
                 Expanded(
                   child: ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isTablet ? 32 : 16,
+                    ),
                     children: [
                       _buildInfoCard(
                         "Email",
@@ -414,10 +485,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         Icons.location_on,
                         Colors.orangeAccent,
                       ),
-
                       const SizedBox(height: 20),
-
-                      // Action Buttons
                       _buildActionButton(
                         "Refresh Profile",
                         Icons.refresh,
@@ -524,50 +592,32 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     VoidCallback onPressed, {
     bool isDestructive = false,
   }) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 500),
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(15),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors:
-                    isDestructive
-                        ? [const Color(0xFF8B0000), const Color(0xFFDC143C)]
-                        : [const Color(0xFF1D976C), const Color(0xFF93F9B9)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 10,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, color: Colors.white, size: 24),
-                const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isDestructive ? Colors.red.shade600 : color,
+          foregroundColor: Colors.white,
+          elevation: 6,
+          shadowColor: Colors.black.withOpacity(0.3),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 22),
+            const SizedBox(width: 12),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+          ],
         ),
       ),
     );

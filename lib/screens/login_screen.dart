@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'forget_password_screen.dart';
+import 'forgot_password_screen.dart';
 import 'look_screen.dart' show LockScreen;
 import 'signup_screen.dart';
 import '../utils/api_constants.dart' show ApiConstants;

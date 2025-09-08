@@ -11,7 +11,6 @@ class TokenManager {
   static const String _tokenExpiryKey = 'token_expiry';
 
   static String? _cachedToken;
-  static String? _cachedRefreshToken;
   static Timer? _refreshTimer;
 
   // حفظ التوكن مع تحديد وقت انتهاء الصلاحية
@@ -29,7 +28,6 @@ class TokenManager {
       // حفظ الـ refresh token إذا موجود
       if (refreshToken != null) {
         await prefs.setString(_refreshTokenKey, refreshToken);
-        _cachedRefreshToken = refreshToken;
       }
 
       // استخراج وحفظ وقت انتهاء الصلاحية من JWT
@@ -190,7 +188,6 @@ class TokenManager {
       await prefs.remove(_tokenExpiryKey);
 
       _cachedToken = null;
-      _cachedRefreshToken = null;
       _refreshTimer?.cancel();
 
       print('🗑️ All tokens cleared');
@@ -209,12 +206,6 @@ class TokenManager {
   static final StreamController<bool> _authStateController =
       StreamController<bool>.broadcast();
   static Stream<bool> get authStateStream => _authStateController.stream;
-
-  static void _notifyAuthStateChange(bool isAuthenticated) {
-    if (!_authStateController.isClosed) {
-      _authStateController.add(isAuthenticated);
-    }
-  }
 
   // تنظيف الموارد
   static void dispose() {
