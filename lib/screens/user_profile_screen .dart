@@ -53,7 +53,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
     showDialog(
       context: context,
       builder:
-          (_) => AlertDialog(
+          (dialogContext) => AlertDialog(
             backgroundColor: const Color(0xFF1E2A3C),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
@@ -107,7 +107,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.pop(dialogContext),
                 child: const Text(
                   "Cancel",
                   style: TextStyle(color: Colors.white70, fontSize: 16),
@@ -115,27 +115,92 @@ class _UserProfileScreenState extends State<UserProfileScreen>
               ),
               TextButton(
                 onPressed: () async {
-                  if (addressController.text.isEmpty &&
-                      newPasswordController.text.isNotEmpty) {
+                  // إضافة validation للـ password
+                  if (newPasswordController.text.isNotEmpty &&
+                      currentPasswordController.text.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text(
-                          "Address cannot be empty if changing password",
+                          "Current password is required to change password",
                         ),
                         backgroundColor: Colors.redAccent,
                       ),
                     );
                     return;
                   }
-                  final result = await UserService.updateProfile(
-                    email: user['email'],
-                    phone: user['phone'],
-                    address: addressController.text,
-                    currentPassword: currentPasswordController.text,
-                    newPassword: newPasswordController.text,
+
+                  // إظهار loading indicator
+                  showDialog(
+                    context: dialogContext,
+                    barrierDismissible: false,
+                    builder:
+                        (_) => const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.greenAccent,
+                          ),
+                        ),
                   );
-                  Navigator.pop(context);
-                  if (result != null) _loadUserProfile();
+
+                  try {
+                    final result = await UserService.updateProfile(
+                      email: user['email'],
+                      phone: user['phone'],
+                      address: addressController.text,
+                      currentPassword:
+                          currentPasswordController.text.isEmpty
+                              ? null
+                              : currentPasswordController.text,
+                      newPassword:
+                          newPasswordController.text.isEmpty
+                              ? null
+                              : newPasswordController.text,
+                    );
+
+                    // إخفاء loading indicator
+                    Navigator.pop(dialogContext);
+                    // إغلاق edit dialog
+                    Navigator.pop(dialogContext);
+
+                    if (result != null) {
+                      // تحديث الـ UI
+                      _loadUserProfile();
+
+                      // إظهار رسالة نجاح
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Profile updated successfully!"),
+                            backgroundColor: Colors.green,
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    } else {
+                      // إظهار رسالة خطأ
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Failed to update profile"),
+                            backgroundColor: Colors.redAccent,
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    }
+                  } catch (e) {
+                    // إخفاء loading indicator في حالة الخطأ
+                    Navigator.pop(dialogContext);
+
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Error: $e"),
+                          backgroundColor: Colors.redAccent,
+                          duration: const Duration(seconds: 3),
+                        ),
+                      );
+                    }
+                  }
                 },
                 child: const Text(
                   "Save",
@@ -339,14 +404,30 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.redAccent),
                   ),
-                  child: Text(
-                    "Error: ${snapshot.error}",
-                    style: const TextStyle(
-                      color: Colors.redAccent,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "Error: ${snapshot.error}",
+                        style: const TextStyle(
+                          color: Colors.redAccent,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _loadUserProfile,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.greenAccent,
+                        ),
+                        child: const Text(
+                          "Retry",
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -360,14 +441,30 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.white12),
                   ),
-                  child: const Text(
-                    "No user data available",
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        "No user data available",
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _loadUserProfile,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.greenAccent,
+                        ),
+                        child: const Text(
+                          "Reload",
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               );

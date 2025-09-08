@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 
 class DeviceDetailScreen extends StatefulWidget {
@@ -49,6 +51,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
 
   @override
   Widget build(BuildContext context) {
+    // ignore:
     return WillPopScope(
       onWillPop: () async {
         Navigator.pop(context, isLocked);

@@ -21,35 +21,68 @@ class UserService {
     _cachedToken = token;
   }
 
-  // داخل UserService.dart
+  // تحديث كلمة المرور فقط
   static Future<Map<String, dynamic>?> updatePassword({
     required String currentPassword,
     required String newPassword,
   }) async {
-    if (!await checkConnectivity()) throw Exception('No internet connection');
+    try {
+      if (!await checkConnectivity()) {
+        throw Exception('No internet connection');
+      }
 
-    final body = {
-      "current_password": currentPassword.trim(),
-      "new_password": newPassword.trim(),
-    };
+      final body = {
+        "current_password": currentPassword.trim(),
+        "new_password": newPassword.trim(),
+      };
 
-    final response = await http.put(
-      Uri.parse(
-        ApiConstants.updateProfile,
-      ), // نفس endpoint الخاص بـ updateProfile
-      headers: await _getHeaders(),
-      body: jsonEncode(body),
-    );
+      print('📤 UpdatePassword request body: $body');
 
-    print('UpdatePassword Status: ${response.statusCode}');
-    print('UpdatePassword Body: ${response.body}');
+      final response = await http
+          .put(
+            Uri.parse(ApiConstants.updateProfile),
+            headers: await _getHeaders(),
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 15));
 
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      print('UpdatePassword Status: ${response.statusCode}');
+      print('UpdatePassword Response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return responseData;
+      } else if (response.statusCode == 422) {
+        // معالجة أخطاء التحقق
+        try {
+          final errorData = jsonDecode(response.body);
+          String errorMessage = 'Validation error';
+
+          if (errorData['message'] != null) {
+            errorMessage = errorData['message'];
+          } else if (errorData['errors'] != null) {
+            final errors = errorData['errors'] as Map<String, dynamic>;
+            errorMessage = errors.values.first.toString();
+          }
+
+          throw Exception(errorMessage);
+        } catch (e) {
+          if (e is Exception) rethrow;
+          throw Exception('Invalid data provided');
+        }
+      } else if (response.statusCode == 401) {
+        await clearToken();
+        throw Exception('Session expired. Please login again.');
+      } else {
+        _handleError('updatePassword', response);
+        throw Exception(
+          'Failed to update password. Status: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      print('💥 Error in updatePassword: $e');
+      rethrow;
     }
-
-    _handleError('updatePassword', response);
-    return null;
   }
 
   // مسح التوكن عند تسجيل الخروج
@@ -105,31 +138,39 @@ class UserService {
   // جلب بيانات المستخدم الحالي
   static Future<Map<String, dynamic>?> getCurrentUser() async {
     try {
-      if (!await checkConnectivity()) throw Exception('No internet connection');
+      if (!await checkConnectivity()) {
+        throw Exception('No internet connection');
+      }
 
       final token = await _getToken();
       if (token == null || token.isEmpty) {
         print('❌ User not logged in');
-        return null;
+        throw Exception('User not logged in');
       }
 
-      final response = await http.get(
-        Uri.parse(ApiConstants.getCurrentUser),
-        headers: await _getHeaders(),
-      );
+      final response = await http
+          .get(
+            Uri.parse(ApiConstants.getCurrentUser),
+            headers: await _getHeaders(),
+          )
+          .timeout(const Duration(seconds: 10));
 
       print('GetCurrentUser Status: ${response.statusCode}');
       print('GetCurrentUser Body: ${response.body}');
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        final responseData = jsonDecode(response.body);
+        return responseData;
+      } else if (response.statusCode == 401) {
+        await clearToken(); // مسح التوكن إذا انتهت صلاحيته
+        throw Exception('Session expired. Please login again.');
       } else {
         _handleError('getCurrentUser', response);
-        return null;
+        throw Exception('Failed to get user data');
       }
     } catch (e) {
       print('💥 Error in getCurrentUser: $e');
-      return null;
+      rethrow;
     }
   }
 
@@ -141,59 +182,152 @@ class UserService {
     String? currentPassword,
     String? newPassword,
   }) async {
-    if (!await checkConnectivity()) throw Exception('No internet connection');
+    try {
+      if (!await checkConnectivity()) {
+        throw Exception('No internet connection');
+      }
 
-    final body = <String, dynamic>{};
-    if (email?.isNotEmpty == true) body['email'] = email!.trim();
-    if (phone?.isNotEmpty == true) body['phone'] = phone!.trim();
-    if (address?.isNotEmpty == true) body['address'] = address!.trim();
-    if (currentPassword?.isNotEmpty == true)
-      body['current_password'] = currentPassword!.trim();
-    if (newPassword?.isNotEmpty == true)
-      body['new_password'] = newPassword!.trim();
+      final body = <String, dynamic>{};
 
-    if (body.isEmpty) return null;
+      // إضافة البيانات فقط إذا كانت مش فاضية
+      if (address != null && address.trim().isNotEmpty) {
+        body['address'] = address.trim();
+      }
 
-    final response = await http.put(
-      Uri.parse(ApiConstants.updateProfile),
-      headers: await _getHeaders(),
-      body: jsonEncode(body),
-    );
+      // إضافة كلمة المرور فقط إذا كان في تغيير
+      if (currentPassword != null &&
+          currentPassword.trim().isNotEmpty &&
+          newPassword != null &&
+          newPassword.trim().isNotEmpty) {
+        body['current_password'] = currentPassword.trim();
+        body['new_password'] = newPassword.trim();
+      }
 
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      // إذا مافيش حاجة للتحديث
+      if (body.isEmpty) {
+        print('⚠️ No data to update');
+        return {'message': 'No changes made'};
+      }
+
+      print('📤 Update request body: $body');
+
+      final response = await http
+          .put(
+            Uri.parse(ApiConstants.updateProfile),
+            headers: await _getHeaders(),
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      print('UpdateProfile Status: ${response.statusCode}');
+      print('UpdateProfile Response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return responseData;
+      } else if (response.statusCode == 422) {
+        // معالجة أخطاء التحقق
+        try {
+          final errorData = jsonDecode(response.body);
+          String errorMessage = 'Validation error';
+
+          if (errorData['message'] != null) {
+            errorMessage = errorData['message'];
+          } else if (errorData['errors'] != null) {
+            // إذا كان في multiple validation errors
+            final errors = errorData['errors'] as Map<String, dynamic>;
+            if (errors.isNotEmpty) {
+              // أخذ أول خطأ
+              final firstError = errors.values.first;
+              if (firstError is List && firstError.isNotEmpty) {
+                errorMessage = firstError.first.toString();
+              } else {
+                errorMessage = firstError.toString();
+              }
+            }
+          }
+
+          throw Exception(errorMessage);
+        } catch (e) {
+          if (e is Exception) rethrow;
+          throw Exception('Invalid data provided');
+        }
+      } else if (response.statusCode == 401) {
+        await clearToken();
+        throw Exception('Session expired. Please login again.');
+      } else if (response.statusCode == 400) {
+        // Bad Request - غالباً مشكلة في البيانات
+        try {
+          final errorData = jsonDecode(response.body);
+          String errorMessage = 'Bad request';
+
+          if (errorData['message'] != null) {
+            errorMessage = errorData['message'];
+          }
+
+          throw Exception(errorMessage);
+        } catch (e) {
+          if (e is Exception) rethrow;
+          throw Exception('Invalid request data');
+        }
+      } else {
+        _handleError('updateProfile', response);
+        throw Exception(
+          'Failed to update profile. Status: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      print('💥 Error in updateProfile: $e');
+      rethrow;
     }
-
-    _handleError('updateProfile', response);
-    return null;
   }
 
   // حذف الحساب
   static Future<bool> deleteAccount() async {
-    if (!await checkConnectivity()) throw Exception('No internet connection');
+    try {
+      if (!await checkConnectivity()) {
+        throw Exception('No internet connection');
+      }
 
-    final response = await http.delete(
-      Uri.parse(ApiConstants.deleteAccount),
-      headers: await _getHeaders(),
-    );
+      final response = await http
+          .delete(
+            Uri.parse(ApiConstants.deleteAccount),
+            headers: await _getHeaders(),
+          )
+          .timeout(const Duration(seconds: 10));
 
-    if (response.statusCode == 200) {
-      await clearToken();
-      return true;
+      print('DeleteAccount Status: ${response.statusCode}');
+      print('DeleteAccount Response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        await clearToken();
+        return true;
+      } else if (response.statusCode == 401) {
+        await clearToken();
+        throw Exception('Session expired. Please login again.');
+      } else {
+        _handleError('deleteAccount', response);
+        return false;
+      }
+    } catch (e) {
+      print('💥 Error in deleteAccount: $e');
+      return false;
     }
-
-    _handleError('deleteAccount', response);
-    return false;
   }
 
   // تسجيل الخروج
   static Future<void> logout() async {
     await clearToken();
+    print('✅ User logged out successfully');
   }
 
   // معالجة الأخطاء
   static void _handleError(String operation, http.Response response) {
     print('⚠️ $operation failed with status: ${response.statusCode}');
-    if (response.statusCode == 401) clearToken();
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 401) {
+      clearToken();
+    }
   }
 }

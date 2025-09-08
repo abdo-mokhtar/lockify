@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-
 import 'dart:convert';
 import '../utils/api_constants.dart' show ApiConstants;
 import 'login_screen.dart';
@@ -21,12 +21,21 @@ class OtpScreen extends StatefulWidget {
 }
 
 class _OtpScreenState extends State<OtpScreen> {
-  final _otpController = TextEditingController();
+  final List<TextEditingController> _otpControllers = List.generate(
+    6,
+    (_) => TextEditingController(),
+  );
+  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
   bool _isLoading = false;
 
   @override
   void dispose() {
-    _otpController.dispose();
+    for (var controller in _otpControllers) {
+      controller.dispose();
+    }
+    for (var node in _focusNodes) {
+      node.dispose();
+    }
     super.dispose();
   }
 
@@ -43,8 +52,19 @@ class _OtpScreenState extends State<OtpScreen> {
     );
   }
 
+  String _getOtpCode() {
+    return _otpControllers.map((controller) => controller.text).join();
+  }
+
+  void _clearOtpFields() {
+    for (var controller in _otpControllers) {
+      controller.clear();
+    }
+    _focusNodes[0].requestFocus();
+  }
+
   Future<void> _verifyOtp() async {
-    final otp = _otpController.text.trim();
+    final otp = _getOtpCode();
 
     if (otp.isEmpty) {
       _showSnack("Enter OTP", Colors.red);
@@ -81,7 +101,8 @@ class _OtpScreenState extends State<OtpScreen> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => ResetPasswordScreen(resetToken: ''),
+                builder:
+                    (context) => ResetPasswordScreen(resetToken: resetToken),
               ),
             );
           } else {
@@ -106,9 +127,11 @@ class _OtpScreenState extends State<OtpScreen> {
         }
 
         _showSnack(errorMessage, Colors.red);
+        _clearOtpFields();
       }
     } catch (e) {
       _showSnack("Error: $e", Colors.red);
+      _clearOtpFields();
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -119,7 +142,18 @@ class _OtpScreenState extends State<OtpScreen> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
     final isWide = screenWidth > 600;
+
+    // Dynamic sizing based on screen dimensions
+    final double fontScale = MediaQuery.of(context).textScaler.scale(1);
+    final double inputFieldSize =
+        isWide
+            ? 60.0
+            : (screenWidth - 48 - 60) /
+                6; // Subtract padding (24*2) and spacing (10*6)
+    final double padding = isWide ? screenWidth * 0.15 : 24.0;
+    final double iconSize = isWide ? 120.0 : screenHeight * 0.15;
 
     return Scaffold(
       body: Container(
@@ -130,120 +164,257 @@ class _OtpScreenState extends State<OtpScreen> {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: isWide ? 100 : 24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.verified_user, size: 100, color: Colors.white),
-                const SizedBox(height: 20),
-                const Text(
-                  "Verify OTP",
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 1.2,
-                  ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: padding),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: isWide ? 600 : screenWidth * 0.9,
                 ),
-                const SizedBox(height: 40),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withOpacity(0.2)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.25),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        TextField(
-                          controller: _otpController,
-                          keyboardType: TextInputType.number,
-                          maxLength: 6,
-                          style: const TextStyle(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Header Icon with Animation
+                    TweenAnimationBuilder(
+                      tween: Tween<double>(begin: 0, end: 1),
+                      duration: const Duration(milliseconds: 800),
+                      builder: (context, value, child) {
+                        return Transform.scale(
+                          scale: value,
+                          child: Icon(
+                            Icons.verified_user,
+                            size: iconSize,
                             color: Colors.white,
-                            fontSize: 20,
-                            letterSpacing: 4,
                           ),
-                          textAlign: TextAlign.center,
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.white.withOpacity(0.15),
-                            hintText: "Enter 6-digit OTP",
-                            hintStyle: TextStyle(
-                              color: Colors.white.withOpacity(0.6),
-                            ),
-                            counterText: "",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              borderSide: BorderSide.none,
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              borderSide: const BorderSide(
-                                color: Colors.blueAccent,
-                                width: 2,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 30),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _verifyOtp,
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                            ),
-                            child: Ink(
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [Colors.blueAccent, Colors.cyan],
-                                ),
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              child: Container(
-                                alignment: Alignment.center,
-                                child:
-                                    _isLoading
-                                        ? const SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: CircularProgressIndicator(
-                                            color: Colors.white,
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                        : const Text(
-                                          "Verify",
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                        );
+                      },
                     ),
-                  ),
+                    SizedBox(height: screenHeight * 0.03),
+
+                    // Title
+                    Text(
+                      "Verify OTP",
+                      style: TextStyle(
+                        fontSize: 28 * fontScale,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    SizedBox(height: screenHeight * 0.015),
+
+                    // Subtitle
+                    Text(
+                      "Enter the 6-digit code sent to your device",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16 * fontScale,
+                        color: Colors.white.withOpacity(0.8),
+                        height: 1.5,
+                      ),
+                    ),
+                    SizedBox(height: screenHeight * 0.05),
+
+                    // OTP Input Card
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.25),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(isWide ? 30 : 20),
+                        child: Column(
+                          children: [
+                            // OTP Input Fields
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: List.generate(6, (index) {
+                                return AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  width: inputFieldSize,
+                                  height: inputFieldSize * 1.3,
+                                  child: TextField(
+                                    controller: _otpControllers[index],
+                                    focusNode: _focusNodes[index],
+                                    enabled: !_isLoading,
+                                    textAlign: TextAlign.center,
+                                    keyboardType: TextInputType.number,
+                                    maxLength: 1,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 28 * fontScale,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                    ],
+                                    decoration: InputDecoration(
+                                      counterText: "",
+                                      filled: true,
+                                      fillColor: Colors.black.withOpacity(0.3),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            vertical: 10,
+                                          ),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(
+                                          color: Colors.white.withOpacity(0.5),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: const BorderSide(
+                                          color: Colors.blueAccent,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(
+                                          color:
+                                              _otpControllers[index]
+                                                      .text
+                                                      .isNotEmpty
+                                                  ? Colors.green.withOpacity(
+                                                    0.7,
+                                                  )
+                                                  : Colors.white.withOpacity(
+                                                    0.5,
+                                                  ),
+                                          width: 1,
+                                        ),
+                                      ),
+                                    ),
+                                    onChanged: (value) {
+                                      if (value.isNotEmpty && index < 5) {
+                                        _focusNodes[index + 1].requestFocus();
+                                      } else if (value.isEmpty && index > 0) {
+                                        _focusNodes[index - 1].requestFocus();
+                                      }
+
+                                      setState(() {});
+
+                                      if (index == 5 && value.isNotEmpty) {
+                                        final otpCode = _getOtpCode();
+                                        if (otpCode.length == 6) {
+                                          FocusScope.of(context).unfocus();
+                                          _verifyOtp();
+                                        }
+                                      }
+                                    },
+                                    onTap: () {
+                                      if (_otpControllers[index]
+                                          .text
+                                          .isNotEmpty) {
+                                        _otpControllers[index]
+                                            .selection = TextSelection(
+                                          baseOffset: 0,
+                                          extentOffset:
+                                              _otpControllers[index]
+                                                  .text
+                                                  .length,
+                                        );
+                                      }
+                                    },
+                                  ),
+                                );
+                              }),
+                            ),
+                            SizedBox(height: screenHeight * 0.04),
+
+                            // Verify Button
+                            SizedBox(
+                              width: double.infinity,
+                              height: isWide ? 60 : 50,
+                              child: ElevatedButton(
+                                onPressed:
+                                    (_isLoading || _getOtpCode().length != 6)
+                                        ? null
+                                        : _verifyOtp,
+                                style: ElevatedButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  elevation: _isLoading ? 0 : 3,
+                                ),
+                                child: Ink(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors:
+                                          _isLoading ||
+                                                  _getOtpCode().length != 6
+                                              ? [
+                                                Colors.grey,
+                                                Colors.grey.shade600,
+                                              ]
+                                              : [
+                                                Colors.blueAccent,
+                                                Colors.cyan,
+                                              ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  child: Container(
+                                    alignment: Alignment.center,
+                                    child:
+                                        _isLoading
+                                            ? const SizedBox(
+                                              width: 24,
+                                              height: 24,
+                                              child: CircularProgressIndicator(
+                                                color: Colors.white,
+                                                strokeWidth: 2,
+                                              ),
+                                            )
+                                            : Text(
+                                              "Verify",
+                                              style: TextStyle(
+                                                fontSize: 18 * fontScale,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: screenHeight * 0.03),
+
+                    // Back Button
+                    TextButton(
+                      onPressed:
+                          _isLoading ? null : () => Navigator.pop(context),
+                      child: Text(
+                        "Back",
+                        style: TextStyle(
+                          color: _isLoading ? Colors.white38 : Colors.white70,
+                          decoration: TextDecoration.underline,
+                          fontSize: 16 * fontScale,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
