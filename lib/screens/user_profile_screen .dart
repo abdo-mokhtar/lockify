@@ -490,23 +490,23 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 500),
                     curve: Curves.easeOut,
-                    padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                    padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
                     decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white24, width: 1.2),
                       gradient: LinearGradient(
                         colors: [
-                          const Color(0xFF2E3B4E).withOpacity(0.9),
-                          const Color(0xFF485563).withOpacity(0.8),
+                          Colors.white.withOpacity(0.08),
+                          Colors.white.withOpacity(0.03),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white10),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.25),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                          color: Colors.black.withOpacity(0.35),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
                         ),
                       ],
                     ),
@@ -515,7 +515,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                         ScaleTransition(
                           scale: _avatarScaleAnimation,
                           child: CircleAvatar(
-                            radius: isSmallScreen ? 40 : (isTablet ? 50 : 45),
+                            radius: isSmallScreen ? 45 : (isTablet ? 55 : 50),
                             backgroundColor: Colors.transparent,
                             child: Container(
                               decoration: BoxDecoration(
@@ -530,15 +530,15 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 3),
+                                    color: Colors.greenAccent.withOpacity(0.4),
+                                    blurRadius: 10,
+                                    spreadRadius: 2,
                                   ),
                                 ],
                               ),
                               child: CircleAvatar(
                                 radius:
-                                    isSmallScreen ? 38 : (isTablet ? 48 : 43),
+                                    isSmallScreen ? 43 : (isTablet ? 53 : 48),
                                 backgroundColor: const Color(0xFF2E3B4E),
                                 child: Text(
                                   user['username']
@@ -549,8 +549,8 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                                   style: TextStyle(
                                     fontSize:
                                         isSmallScreen
-                                            ? 28
-                                            : (isTablet ? 34 : 32),
+                                            ? 30
+                                            : (isTablet ? 38 : 34),
                                     fontWeight: FontWeight.w800,
                                     color: Colors.white,
                                   ),
@@ -559,17 +559,26 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                             ),
                           ),
                         ),
-                        SizedBox(height: isSmallScreen ? 6 : 8),
+                        const SizedBox(height: 12),
                         Text(
                           user['username'] ?? '',
                           style: TextStyle(
                             fontSize: isSmallScreen ? 22 : (isTablet ? 26 : 24),
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.bold,
                             color: Colors.white,
-                            letterSpacing: 0.5,
+                            letterSpacing: 0.6,
                           ),
                         ),
-                        SizedBox(height: isSmallScreen ? 3 : 4),
+                        const SizedBox(height: 4),
+                        Text(
+                          user['email'] ?? 'No email provided',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white70,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
                         Container(
                           padding: EdgeInsets.symmetric(
                             horizontal: isSmallScreen ? 12 : 14,
@@ -578,9 +587,9 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                           decoration: BoxDecoration(
                             color:
                                 user['is_verified'] == true
-                                    ? Colors.greenAccent.withOpacity(0.4)
-                                    : Colors.orange.withOpacity(0.4),
-                            borderRadius: BorderRadius.circular(10),
+                                    ? Colors.greenAccent.withOpacity(0.2)
+                                    : Colors.orange.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color:
                                   user['is_verified'] == true
@@ -590,16 +599,15 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                           ),
                           child: Text(
                             user['is_verified'] == true
-                                ? "✓ Verified"
-                                : "⚠ Unverified",
+                                ? "✓ Verified User"
+                                : "⚠ Not Verified",
                             style: TextStyle(
                               color:
                                   user['is_verified'] == true
                                       ? Colors.greenAccent
                                       : Colors.orange,
-                              fontWeight: FontWeight.w700,
-                              fontSize:
-                                  isSmallScreen ? 13 : (isTablet ? 15 : 14),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
                             ),
                           ),
                         ),
@@ -608,6 +616,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                   ),
                 ),
                 SizedBox(height: isSmallScreen ? 10 : 14),
+
                 Expanded(
                   child: ListView(
                     padding: EdgeInsets.symmetric(
