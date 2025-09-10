@@ -104,12 +104,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 // Card
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withOpacity(0.2)),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.25),
+                        color: Colors.black.withValues(alpha: 0.25),
                         blurRadius: 10,
                         offset: const Offset(0, 5),
                       ),
@@ -126,10 +126,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           cursorColor: Colors.blueAccent,
                           decoration: InputDecoration(
                             filled: true,
-                            fillColor: Colors.white.withOpacity(0.15),
+                            fillColor: Colors.white.withValues(alpha: 0.15),
                             hintText: "Enter new password",
                             hintStyle: TextStyle(
-                              color: Colors.white.withOpacity(0.6),
+                              color: Colors.white.withValues(alpha: 0.6),
                             ),
                             prefixIcon: const Icon(
                               Icons.lock,

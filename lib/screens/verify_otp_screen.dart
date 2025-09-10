@@ -263,7 +263,7 @@ class _OtpResetScreenState extends State<OtpResetScreen> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 16 * fontScale,
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         height: 1.5,
                       ),
                     ),
@@ -272,14 +272,14 @@ class _OtpResetScreenState extends State<OtpResetScreen> {
                     // OTP Input Card
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.25),
+                            color: Colors.black.withValues(alpha: 0.25),
                             blurRadius: 10,
                             offset: const Offset(0, 5),
                           ),
@@ -317,7 +317,7 @@ class _OtpResetScreenState extends State<OtpResetScreen> {
                                     decoration: InputDecoration(
                                       counterText: "",
                                       filled: true,
-                                      fillColor: Colors.black.withOpacity(
+                                      fillColor: Colors.black.withValues(alpha: 
                                         0.3,
                                       ), // Darker background
                                       contentPadding:
@@ -327,7 +327,7 @@ class _OtpResetScreenState extends State<OtpResetScreen> {
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
                                         borderSide: BorderSide(
-                                          color: Colors.white.withOpacity(
+                                          color: Colors.white.withValues(alpha: 
                                             0.5,
                                           ), // Visible border
                                           width: 1,
@@ -347,10 +347,10 @@ class _OtpResetScreenState extends State<OtpResetScreen> {
                                               _otpControllers[index]
                                                       .text
                                                       .isNotEmpty
-                                                  ? Colors.green.withOpacity(
+                                                  ? Colors.green.withValues(alpha: 
                                                     0.7,
                                                   )
-                                                  : Colors.white.withOpacity(
+                                                  : Colors.white.withValues(alpha: 
                                                     0.5,
                                                   ),
                                           width: 1,
@@ -464,7 +464,7 @@ class _OtpResetScreenState extends State<OtpResetScreen> {
                         Text(
                           "Didn't receive code? ",
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
+                            color: Colors.white.withValues(alpha: 0.7),
                             fontSize: 16 * fontScale,
                           ),
                         ),

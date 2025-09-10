@@ -76,7 +76,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
           flexibleSpace: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.black.withOpacity(0.5), Colors.transparent],
+                colors: [Colors.black.withValues(alpha: 0.5), Colors.transparent],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -106,13 +106,13 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white.withValues(alpha: 0.1),
                             boxShadow: [
                               BoxShadow(
                                 color:
                                     isLocked
-                                        ? Colors.redAccent.withOpacity(0.3)
-                                        : Colors.greenAccent.withOpacity(0.3),
+                                        ? Colors.redAccent.withValues(alpha: 0.3)
+                                        : Colors.greenAccent.withValues(alpha: 0.3),
                                 blurRadius: 20,
                                 spreadRadius: 5,
                               ),
@@ -153,7 +153,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
                       : "Tap to lock your device",
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                     fontWeight: FontWeight.w400,
                   ),
                 ),
@@ -187,8 +187,8 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen>
                         BoxShadow(
                           color:
                               isLocked
-                                  ? Colors.greenAccent.withOpacity(0.4)
-                                  : Colors.redAccent.withOpacity(0.4),
+                                  ? Colors.greenAccent.withValues(alpha: 0.4)
+                                  : Colors.redAccent.withValues(alpha: 0.4),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),

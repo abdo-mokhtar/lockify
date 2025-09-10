@@ -272,7 +272,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white10),
       ),
@@ -339,7 +339,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
           borderSide: const BorderSide(color: Colors.greenAccent, width: 2),
         ),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.08),
+        fillColor: Colors.white.withValues(alpha: 0.08),
         contentPadding: const EdgeInsets.symmetric(
           vertical: 12,
           horizontal: 16,
@@ -392,7 +392,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
           gradient: LinearGradient(
             colors: [
               const Color(0xFF0F2027),
-              const Color(0xFF2C5364).withOpacity(0.95),
+              const Color(0xFF2C5364).withValues(alpha: 0.95),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -411,7 +411,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                   padding: const EdgeInsets.all(20),
                   margin: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
+                    color: Colors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.redAccent),
                   ),
@@ -448,7 +448,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                   padding: const EdgeInsets.all(20),
                   margin: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.white12),
                   ),
@@ -496,15 +496,15 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                       border: Border.all(color: Colors.white24, width: 1.2),
                       gradient: LinearGradient(
                         colors: [
-                          Colors.white.withOpacity(0.08),
-                          Colors.white.withOpacity(0.03),
+                          Colors.white.withValues(alpha: 0.08),
+                          Colors.white.withValues(alpha: 0.03),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.35),
+                          color: Colors.black.withValues(alpha: 0.35),
                           blurRadius: 12,
                           offset: const Offset(0, 6),
                         ),
@@ -530,7 +530,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.greenAccent.withOpacity(0.4),
+                                    color: Colors.greenAccent.withValues(alpha: 0.4),
                                     blurRadius: 10,
                                     spreadRadius: 2,
                                   ),
@@ -587,8 +587,8 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                           decoration: BoxDecoration(
                             color:
                                 user['is_verified'] == true
-                                    ? Colors.greenAccent.withOpacity(0.2)
-                                    : Colors.orange.withOpacity(0.2),
+                                    ? Colors.greenAccent.withValues(alpha: 0.2)
+                                    : Colors.orange.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color:
@@ -688,8 +688,8 @@ class _UserProfileScreenState extends State<UserProfileScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            const Color(0xFF2E3B4E).withOpacity(0.9),
-            const Color(0xFF485563).withOpacity(0.7),
+            const Color(0xFF2E3B4E).withValues(alpha: 0.9),
+            const Color(0xFF485563).withValues(alpha: 0.7),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -698,7 +698,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
         border: Border.all(color: Colors.white12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -709,7 +709,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.3),
+              color: color.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: color, size: 24),
@@ -756,18 +756,18 @@ class _UserProfileScreenState extends State<UserProfileScreen>
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(14),
-        splashColor: color.withOpacity(0.3),
+        splashColor: color.withValues(alpha: 0.3),
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [color.withOpacity(0.9), color.withOpacity(0.6)],
+              colors: [color.withValues(alpha: 0.9), color.withValues(alpha: 0.6)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(14),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),

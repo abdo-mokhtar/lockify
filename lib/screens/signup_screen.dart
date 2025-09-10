@@ -117,7 +117,7 @@ class _SignupScreenState extends State<SignupScreen> {
       prefixIcon: Icon(icon, color: Colors.white),
       labelStyle: const TextStyle(color: Colors.white70),
       filled: true,
-      fillColor: Colors.white.withOpacity(0.15),
+      fillColor: Colors.white.withValues(alpha: 0.15),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
         borderSide: BorderSide.none,
@@ -143,7 +143,7 @@ class _SignupScreenState extends State<SignupScreen> {
             padding: const EdgeInsets.all(20),
             child: Card(
               elevation: 8,
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),

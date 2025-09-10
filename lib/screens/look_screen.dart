@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:lockify/screens/user_profile_screen%20.dart'
-    show UserProfileScreen;
+
 import 'device_detail_screen.dart';
+import 'user_profile_screen.dart';
 
 class LockScreen extends StatefulWidget {
   const LockScreen({super.key});

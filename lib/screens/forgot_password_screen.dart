@@ -169,7 +169,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                       height: 1.5,
                     ),
                   ),
@@ -179,12 +179,12 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.25),
+                          color: Colors.black.withValues(alpha: 0.25),
                           blurRadius: 10,
                           offset: const Offset(0, 5),
                         ),
@@ -205,10 +205,10 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                               enabled: !_isLoading,
                               decoration: InputDecoration(
                                 filled: true,
-                                fillColor: Colors.white.withOpacity(0.15),
+                                fillColor: Colors.white.withValues(alpha: 0.15),
                                 hintText: "Enter your email or phone",
                                 hintStyle: TextStyle(
-                                  color: Colors.white.withOpacity(0.6),
+                                  color: Colors.white.withValues(alpha: 0.6),
                                 ),
                                 prefixIcon: const Icon(
                                   Icons.alternate_email,

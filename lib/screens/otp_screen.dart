@@ -210,7 +210,7 @@ class _OtpScreenState extends State<OtpScreen> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 16 * fontScale,
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         height: 1.5,
                       ),
                     ),
@@ -219,14 +219,14 @@ class _OtpScreenState extends State<OtpScreen> {
                     // OTP Input Card
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.25),
+                            color: Colors.black.withValues(alpha: 0.25),
                             blurRadius: 10,
                             offset: const Offset(0, 5),
                           ),
@@ -262,7 +262,7 @@ class _OtpScreenState extends State<OtpScreen> {
                                     decoration: InputDecoration(
                                       counterText: "",
                                       filled: true,
-                                      fillColor: Colors.black.withOpacity(0.3),
+                                      fillColor: Colors.black.withValues(alpha: 0.3),
                                       contentPadding:
                                           const EdgeInsets.symmetric(
                                             vertical: 10,
@@ -270,7 +270,7 @@ class _OtpScreenState extends State<OtpScreen> {
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
                                         borderSide: BorderSide(
-                                          color: Colors.white.withOpacity(0.5),
+                                          color: Colors.white.withValues(alpha: 0.5),
                                           width: 1,
                                         ),
                                       ),
@@ -288,10 +288,10 @@ class _OtpScreenState extends State<OtpScreen> {
                                               _otpControllers[index]
                                                       .text
                                                       .isNotEmpty
-                                                  ? Colors.green.withOpacity(
+                                                  ? Colors.green.withValues(alpha: 
                                                     0.7,
                                                   )
-                                                  : Colors.white.withOpacity(
+                                                  : Colors.white.withValues(alpha: 
                                                     0.5,
                                                   ),
                                           width: 1,
